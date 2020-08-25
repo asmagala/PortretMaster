@@ -15,7 +15,7 @@ exports.add = async (req, res) => {
   try {
     const { title, author, email } = req.fields;
     const file = req.files.file;
-
+    
     if(title && author && email && file) { // if fields are not empty...
 
       const fileName = file.path.split('/').slice(-1)[0]; // cut only filename from full path, e.g. C:/test/abc.jpg -> abc.jpg
@@ -65,6 +65,7 @@ exports.vote = async (req, res) => {
     const photoToUpdate = await Photo.findOne({ _id: req.params.id });
     if(!photoToUpdate) res.status(404).json({ message: 'Not found' });
     else {
+      console.log('req.ip', req.ip);
       photoToUpdate.votes++;
       photoToUpdate.save();
       res.send({ message: 'OK' });
