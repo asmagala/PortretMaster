@@ -1,5 +1,13 @@
 const Photo = require('../models/photo.model');
 
+function escape(text) {
+  return text.replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 /****** SUBMIT PHOTO ********/
 
 exports.add = async (req, res) => {
@@ -12,9 +20,15 @@ exports.add = async (req, res) => {
 
       const fileName = file.path.split('/').slice(-1)[0]; // cut only filename from full path, e.g. C:/test/abc.jpg -> abc.jpg
       const fileExt = fileName.split('.').slice(-1)[0];
+
+      const pattern = new RegExp(/(([A-z]|\s)*)/, 'g');
+      const matchedAuthor = author.match(pattern).join('');
+      const matchedTitle = title.match(pattern).join('');
+      const mailRegEx = new RegExp(/^[0-9a-z_.-]+@[0-9a-z.-]+\.[a-z]{2,3}$/, 'i');
+      const matchedEmail = email.match(mailRegEx).join('');
       
       if (fileExt === 'jpg' || fileExt === 'gif' || fileExt === 'png') {
-        res.json(newPhoto);	        const newPhoto = new Photo({ title, author, email, src: fileName, votes: 0 });
+        const newPhoto = new Photo({ title: matchedTitle, author: matchedAuthor, email: matchedEmail, src: fileName, votes: 0 });
           await newPhoto.save(); // ...save new photo in DB
           res.json(newPhoto);
         } else {
