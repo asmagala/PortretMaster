@@ -19,7 +19,7 @@ exports.add = async (req, res) => {
     
     if(title && author && email && file) { // if fields are not empty...
 
-      const fileName = file.path.split('/').slice(-1)[0]; // cut only filename from full path, e.g. C:/test/abc.jpg -> abc.jpg
+      const fileName = file.path.split('/').slice(-1)[0]; 
       const fileExt = fileName.split('.').slice(-1)[0];
 
       const pattern = new RegExp(/(([A-z]|\s)*)/, 'g');
@@ -64,32 +64,22 @@ exports.vote = async (req, res) => {
 
 
   try {
-    const photoToUpdate = await Photo.findOne({ _id: req.params.id });
-    console.log('photoToUpdate', photoToUpdate);
-    /*
-    
-    console.log('cIP', userIP);
-    const ipUsed = await Voter.findOne();
-    console.log('ipUsed', ipUsed);
-    */
+    const photoID = req.params.id;
+    const photoToUpdate = await Photo.findOne({ _id: photoID });
+
     if(!photoToUpdate) res.status(404).json({ message: 'Not found' });
     else {
-      const userIP = req.ip.split(':').slice(-1);
-      console.log('userIP', userIP);
+      const userIP = req.ip.split(':').slice(-1)[0];
       const voted = await Voter.findOne({user: userIP});
-      console.log('voted', voted);
-      if(!voted) {
-        const newUser = new Voter({ user: userIP });
-        await newUser.save();
-        console.log('newUser', newUser);
-        const aaa = await Voter.find();
-        console.log('aaaaa', aaa);
 
+      if(!voted) {
+        const newUser = new Voter({ user: userIP, votes: [photoID] });
+        await newUser.save();
       } else {
-        if (voted.votes.some(vote => vote == req.params.id)) {
+        if (voted.votes.some(vote => vote == photoID)) {
           throw new Error("You've already voted");
         }
-        voted.votes.push(req.params.id)
+        voted.votes.push(photoID)
         await voted.save();
       }
       photoToUpdate.votes++;
@@ -99,5 +89,4 @@ exports.vote = async (req, res) => {
   } catch(err) {
     res.status(500).json(err);
   }
-
 };
